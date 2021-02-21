@@ -1,5 +1,6 @@
 #pragma once
 #include <cinttypes>
+#include <cassert>
 #include <type_traits>
 #include <sstream>
 
@@ -200,6 +201,23 @@ namespace ez {
 		}
 		std::size_t size() const noexcept {
 			return intern::bitcount(value);
+		}
+		constexpr std::size_t max_size() const noexcept {
+			return static_cast<std::size_t>(Enum::_Count);
+		}
+
+		std::size_t numSet() const noexcept {
+			return size();
+		}
+		std::size_t numUnset() const noexcept {
+			return max_size() - size();
+		}
+
+		void set(BitFlags val) noexcept {
+			*this |= val;
+		}
+		void unset(BitFlags val) noexcept {
+			*this &= ~val;
 		}
 
 		const Enum front() const {
