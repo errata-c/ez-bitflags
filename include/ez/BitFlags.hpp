@@ -112,6 +112,13 @@ namespace ez {
 			return *this;
 		}
 
+		bool operator==(BitFlags other) const noexcept {
+			return value == other.value;
+		}
+		bool operator!=(BitFlags other) const noexcept {
+			return value != other.value;
+		}
+
 		utype rawValue() const noexcept {
 			return value;
 		}
