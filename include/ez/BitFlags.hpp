@@ -226,7 +226,7 @@ namespace ez {
 		}
 		const Enum back() const {
 			assert(!empty());
-			return *(end() - 1);
+			return *(--end());
 		}
 
 		bool contains(Enum val) const noexcept {
