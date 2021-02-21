@@ -308,11 +308,11 @@ constexpr ez::BitFlags<Enum>(operator&)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum
 }
 template<typename Enum>
 constexpr ez::BitFlags<Enum>(operator^)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
-	return ez::BitFlags<Enum>::fromRawValue(lh.rawValue() ^ rh.rawValue()) & ez::BitFlags<Enum>::All;
+	return ez::BitFlags<Enum>::fromRawValue(lh.rawValue() ^ rh.rawValue()) & ez::BitFlags<Enum>{ez::BitFlags<Enum>::All};
 }
 template<typename Enum>
 constexpr ez::BitFlags<Enum>(operator~)(ez::BitFlags<Enum> lh) noexcept {
-	return ez::BitFlags<Enum>::fromRawValue(~lh.rawValue()) & ez::BitFlags<Enum>::All;
+	return ez::BitFlags<Enum>::fromRawValue(~lh.rawValue()) & ez::BitFlags<Enum>{ez::BitFlags<Enum>::All};
 }
 
 template<typename Enum, Enum = Enum::_EnableOperators>
