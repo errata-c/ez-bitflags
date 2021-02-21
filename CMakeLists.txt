@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.17)
+
+project(EZ_BITFLAGS
+VERSION 0.2
+LANGUAGES CXX)
+
+include(GNUInstallDirs)
+find_package(ez-cmake CONFIG REQUIRED)
+
+set(PACK_NAME "ez-bitflags")
+set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/${PACK_NAME}" CACHE STRING "The relative directory to install ${PACK_NAME} package config files.")
+set(BUILD_TESTS OFF CACHE BOOL "Build the tests for ${PACK_NAME} library.")
+
+add_library(ez-bitflags INTERFACE)
+
+target_include_directories(ez-bitflags
+INTERFACE
+	"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
+	"$<INSTALL_INTERFACE:include>"
+)
+target_compile_features(ez-bitflags INTERFACE cxx_std_17)
+set_target_properties(ez-bitflags PROPERTIES EXPORT_NAME "bitflags")
+
+if(${BUILD_TESTS})
+	add_subdirectory("test")
+endif()
+
+set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/ez-bitflags)
+
+install(
+DIRECTORY 
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
+DESTINATION 
+	"${CMAKE_INSTALL_INCLUDEDIR}"
+FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" 
+)
+
+install(TARGETS ez-bitflags
+    EXPORT ez-bitflags-targets
+)
+
+install_package(
+	NAME "ez-bitflags"
+	NAMESPACE "ez::"
+	EXPORT "ez-bitflags-targets"
+	VERSION "${EZ_BITFLAGS_VERSION}"
+	COMPATIBILITY "SameMajorVersion"
+	DESTINATION "${CONFIG_DIR}"
+	ARCH_INDEPENDENT
+)
