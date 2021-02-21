@@ -172,31 +172,37 @@ namespace ez {
 			const BitFlags* source;
 		};
 
-		BitFlags() noexcept
+		static constexpr BitFlags fromRawValue(utype val) {
+			BitFlags flags;
+			flags.value = val;
+			return flags;
+		}
+
+		constexpr BitFlags() noexcept
 			: value(0)
 		{}
-		BitFlags(none_t none) noexcept
+		constexpr BitFlags(none_t none) noexcept
 			: value(0)
 		{}
-		BitFlags(all_t all) noexcept
+		constexpr BitFlags(all_t all) noexcept
 			: value(traits::mask)
 		{}
 
-		BitFlags(const BitFlags&) noexcept = default;
-		BitFlags& operator=(const BitFlags&) noexcept = default;
-
-		BitFlags(const Enum& val) noexcept
+		constexpr BitFlags(const Enum& val) noexcept
 			: value(_convert(val))
 		{}
-		BitFlags& operator=(const Enum& val) noexcept {
+		constexpr BitFlags& operator=(const Enum& val) noexcept {
 			value = _convert(val);
 			return *this;
 		}
 
+		constexpr BitFlags(const BitFlags&) noexcept = default;
+		constexpr BitFlags& operator=(const BitFlags&) noexcept = default;
+
 		void clear() noexcept {
 			value = static_cast<utype>(0);
 		}
-		bool empty() const noexcept {
+		constexpr bool empty() const noexcept {
 			return value != static_cast<utype>(0);
 		}
 		std::size_t size() const noexcept {
@@ -206,10 +212,10 @@ namespace ez {
 			return static_cast<std::size_t>(Enum::_Count);
 		}
 
-		std::size_t numSet() const noexcept {
+		constexpr std::size_t numSet() const noexcept {
 			return size();
 		}
-		std::size_t numUnset() const noexcept {
+		constexpr std::size_t numUnset() const noexcept {
 			return max_size() - size();
 		}
 
@@ -229,43 +235,43 @@ namespace ez {
 			return *(--end());
 		}
 
-		bool contains(Enum val) const noexcept {
+		constexpr bool contains(Enum val) const noexcept {
 			return (value & _convert(val)) != static_cast<utype>(0);
 		}
-		bool allOf(BitFlags other) const noexcept {
+		constexpr bool allOf(BitFlags other) const noexcept {
 			return (value & other.value) == other.value;
 		}
-		bool noneOf(BitFlags other) const noexcept {
+		constexpr bool noneOf(BitFlags other) const noexcept {
 			return (value & other.value) == static_cast<utype>(0);
 		}
-		bool anyOf(BitFlags other) const noexcept {
+		constexpr bool anyOf(BitFlags other) const noexcept {
 			return (value & other.value) != static_cast<utype>(0);
 		}
 
-		BitFlags& operator|=(BitFlags rh) noexcept {
+		constexpr BitFlags& operator|=(BitFlags rh) noexcept {
 			value |= rh.value;
 			return *this;
 		}
 
-		BitFlags& operator&=(BitFlags rh) noexcept {
+		constexpr BitFlags& operator&=(BitFlags rh) noexcept {
 			value &= rh.value;
 			return *this;
 		}
 
-		BitFlags& operator^=(BitFlags rh) noexcept {
+		constexpr BitFlags& operator^=(BitFlags rh) noexcept {
 			value ^= rh.value;
 			value &= traits::mask;
 			return *this;
 		}
 
-		bool operator==(BitFlags other) const noexcept {
+		constexpr bool operator==(BitFlags other) const noexcept {
 			return value == other.value;
 		}
-		bool operator!=(BitFlags other) const noexcept {
+		constexpr bool operator!=(BitFlags other) const noexcept {
 			return value != other.value;
 		}
 
-		utype rawValue() const noexcept {
+		constexpr utype rawValue() const noexcept {
 			return value;
 		}
 
@@ -293,48 +299,37 @@ namespace ez {
 };
 
 template<typename Enum>
-ez::BitFlags<Enum>(operator|)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
-	lh |= rh;
-	return lh;
+constexpr ez::BitFlags<Enum>(operator|)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
+	return ez::BitFlags<Enum>::fromRawValue(lh.rawValue() | rh.rawValue());
 }
 template<typename Enum>
-ez::BitFlags<Enum>(operator&)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
-	lh &= rh;
-	return lh;
+constexpr ez::BitFlags<Enum>(operator&)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
+	return ez::BitFlags<Enum>::fromRawValue(lh.rawValue() & rh.rawValue());
 }
 template<typename Enum>
-ez::BitFlags<Enum>(operator^)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
-	lh ^= rh;
-	return lh;
+constexpr ez::BitFlags<Enum>(operator^)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum> rh) noexcept {
+	return ez::BitFlags<Enum>::fromRawValue(lh.rawValue() ^ rh.rawValue()) & ez::BitFlags<Enum>::All;
 }
 template<typename Enum>
-ez::BitFlags<Enum>(operator~)(ez::BitFlags<Enum> lh) noexcept {
-	lh ^= ez::BitFlags<Enum>::All;
-	return lh;
+constexpr ez::BitFlags<Enum>(operator~)(ez::BitFlags<Enum> lh) noexcept {
+	return ez::BitFlags<Enum>::fromRawValue(~lh.rawValue()) & ez::BitFlags<Enum>::All;
 }
 
 template<typename Enum, Enum = Enum::_EnableOperators>
-ez::BitFlags<Enum>(operator|)(Enum lh, Enum rh) noexcept {
-	ez::BitFlags<Enum> tmp{lh};
-	tmp |= rh;
-	return tmp;
+constexpr ez::BitFlags<Enum>(operator|)(Enum lh, Enum rh) noexcept {
+	return ez::BitFlags<Enum>{lh} | ez::BitFlags<Enum>{rh};
 }
 template<typename Enum, Enum = Enum::_EnableOperators>
-ez::BitFlags<Enum>(operator&)(Enum lh, Enum rh) noexcept {
-	ez::BitFlags<Enum> tmp{ lh };
-	tmp &= rh;
-	return tmp;
+constexpr ez::BitFlags<Enum>(operator&)(Enum lh, Enum rh) noexcept {
+	return ez::BitFlags<Enum>{lh} & ez::BitFlags<Enum>{rh};
 }
 template<typename Enum, Enum = Enum::_EnableOperators>
-ez::BitFlags<Enum>(operator^)(Enum lh, Enum rh) noexcept {
-	ez::BitFlags<Enum> tmp{ lh };
-	tmp ^= rh;
-	return tmp;
+constexpr ez::BitFlags<Enum>(operator^)(Enum lh, Enum rh) noexcept {
+	return ez::BitFlags<Enum>{lh} ^ ez::BitFlags<Enum>{rh};
 }
 template<typename Enum, Enum = Enum::_EnableOperators>
-ez::BitFlags<Enum>(operator~)(Enum lh) noexcept {
-	ez::BitFlags<Enum> tmp{ lh };
-	return ~tmp;
+constexpr ez::BitFlags<Enum>(operator~)(Enum lh) noexcept {
+	return ~ez::BitFlags<Enum>{ lh };
 }
 
 template<typename Enum, typename = std::enable_if_t<ez::intern::has_ostream_operator<Enum>::value>>
