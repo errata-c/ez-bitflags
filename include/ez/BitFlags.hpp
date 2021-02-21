@@ -20,7 +20,7 @@ namespace ez {
 		template<typename Enum, typename = int>
 		struct has_ostream_operator: std::false_type {};
 		template<typename Enum>
-		struct has_ostream_operator<Enum, decltype(std::declval<std::ostream>() << Enum::_Count, 0)> : std::true_type {};
+		struct has_ostream_operator<Enum, decltype(operator<<(std::declval<std::ostream>(), Enum::_Count), 0)> : std::true_type {};
 
 		template<typename Enum>
 		constexpr bool verify() {
@@ -49,6 +49,42 @@ namespace ez {
 			
 			static constexpr utype mask = bitmask<utype, static_cast<std::size_t>(Enum::_Count)>();
 		};
+
+		static std::size_t bitcount(uint8_t _val) noexcept {
+			uint32_t val = _val;
+			val = ((val & 0xAAu) >> 1) + (val & 0x77u);
+			val = ((val & 0xCCu) >> 2) + (val & 0x33u);
+			val = ((val & 0xF0) >> 4) + (val & 0x0F);
+			return static_cast<std::size_t>(val);
+		}
+		static std::size_t bitcount(uint16_t _val) noexcept {
+			uint32_t val = _val;
+			val = ((val & 0xAAAAu) >> 1) + (val & 0x7777u);
+			val = ((val & 0xCCCCu) >> 2) + (val & 0x3333u);
+			val = ((val & 0xF0F0u) >> 4) + (val & 0x0F0Fu);
+			val = ((val & 0xFF00u) >> 8) + (val & 0x00FFu);
+
+			return static_cast<std::size_t>(val);
+		}
+		static std::size_t bitcount(uint32_t val) noexcept {
+			val = ((val & 0xAAAA'AAAAu) >> 1) + (val & 0x7777'7777u);
+			val = ((val & 0xCCCC'CCCCu) >> 2) + (val & 0x3333'3333u);
+			val = ((val & 0xF0F0'F0F0u) >> 4) + (val & 0x0F0F'0F0Fu);
+			val = ((val & 0xFF00'FF00u) >> 8) + (val & 0x00FF'00FFu);
+			val = ((val & 0xFFFF'0000u) >> 16) + (val & 0x0000'FFFFu);
+
+			return static_cast<std::size_t>(val);
+		}
+		static std::size_t bitcount(uint64_t val) noexcept {
+			val = ((val & 0xAAAA'AAAA'AAAA'AAAAull) >> 1) + (val & 0x7777'7777'7777'7777ull);
+			val = ((val & 0xCCCC'CCCC'CCCC'CCCCull) >> 2) + (val & 0x3333'3333'3333'3333ull);
+			val = ((val & 0xF0F0'F0F0'F0F0'F0F0ull) >> 4) + (val & 0x0F0F'0F0F'0F0F'0F0Full);
+			val = ((val & 0xFF00'FF00'FF00'FF00ull) >> 8) + (val & 0x00FF'00FF'00FF00FFull);
+			val = ((val & 0xFFFF0000'FFFF0000ull) >> 16) + (val & 0x0000FFFF'0000FFFFull);
+			val = ((val & 0xFFFFFFFF'00000000ull) >> 32) + (val & 0x00000000'FFFFFFFFull);
+
+			return static_cast<std::size_t>(val);
+		}
 	};
 
 	template<typename Enum>
@@ -61,6 +97,79 @@ namespace ez {
 
 		static constexpr none_t None{};
 		static constexpr all_t All{};
+
+
+		struct const_iterator {
+			static constexpr utype maxval = static_cast<utype>(Enum::_Count);
+
+			using value_type = Enum;
+			using difference_type = int;
+			using pointer = const Enum*;
+			using reference = const Enum&;
+			using iterator_category = std::bidirectional_iterator_tag;
+
+			const_iterator(const BitFlags& _source, int _index) 
+				: source(&_source)
+				, index(_index)
+			{}
+
+			const_iterator() noexcept
+				: index(0)
+				, source(nullptr)
+			{};
+			const_iterator(const const_iterator &) noexcept = default;
+			~const_iterator() = default;
+			const_iterator& operator=(const const_iterator&) noexcept = default;
+
+			bool operator==(const_iterator other) const noexcept {
+				return index == other.index;
+			}
+			bool operator!=(const_iterator other) const noexcept {
+				return index != other.index;
+			}
+
+			value_type operator*() noexcept {
+				return static_cast<Enum>(static_cast<utype>(1) << index);
+			}
+			value_type operator->() noexcept {
+				return static_cast<Enum>(static_cast<utype>(1) << index);
+			}
+
+			const_iterator operator++(int) noexcept {
+				const_iterator copy = *this;
+				++(*this);
+				return copy;
+			}
+			const_iterator operator--(int) noexcept {
+				const_iterator copy = *this;
+				--(*this);
+				return copy;
+			}
+
+			const_iterator& operator++() noexcept {
+				assert(source != nullptr);
+				while (index < maxval) {
+					if (source->contains(static_cast<Enum>(index))) {
+						break;
+					}
+					++index;
+				}
+				return *this;
+			}
+			const_iterator& operator--() noexcept {
+				assert(source != nullptr);
+				while (index > -1) {
+					if (source->contains(static_cast<Enum>(index))) {
+						break;
+					}
+					--index;
+				}
+				return *this;
+			}
+		private:
+			int index;
+			const BitFlags* source;
+		};
 
 		BitFlags() noexcept
 			: value(0)
@@ -81,6 +190,25 @@ namespace ez {
 		BitFlags& operator=(const Enum& val) noexcept {
 			value = _convert(val);
 			return *this;
+		}
+
+		void clear() noexcept {
+			value = static_cast<utype>(0);
+		}
+		bool empty() const noexcept {
+			return value != static_cast<utype>(0);
+		}
+		std::size_t size() const noexcept {
+			return intern::bitcount(value);
+		}
+
+		const Enum front() const {
+			assert(!empty());
+			return *begin();
+		}
+		const Enum back() const {
+			assert(!empty());
+			return *(end() - 1);
 		}
 
 		bool contains(Enum val) const noexcept {
@@ -121,6 +249,22 @@ namespace ez {
 
 		utype rawValue() const noexcept {
 			return value;
+		}
+
+		const_iterator begin() const noexcept {
+			auto tmp = const_iterator{ *this, -1 };
+			return ++tmp; // No guarantee that there are any set, increment once to find first, if it exists. 
+		}
+		const_iterator end() const noexcept {
+			return const_iterator{ *this, const_iterator::maxval };
+		}
+
+		const_iterator cbegin() const noexcept {
+			auto tmp = const_iterator{ *this, -1 };
+			return ++tmp; // No guarantee that there are any set, increment once to find first, if it exists. 
+		}
+		const_iterator cend() const noexcept {
+			return const_iterator{ *this, const_iterator::maxval };
 		}
 	private:
 		utype value;

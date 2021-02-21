@@ -58,6 +58,41 @@ std::ostream& operator<<(std::ostream& os, Sparse value) {
 
 using SparseFlags = ez::BitFlags<Sparse>;
 
+
+namespace ez {
+	enum class NSpace {
+		Zero = 0,
+		One = 1,
+		Two = 2,
+		_Count
+	};
+	using NSpaceFlags = ez::BitFlags<NSpace>;
+
+
+	std::ostream& operator<<(std::ostream& os, ez::NSpace val) {
+		switch (val) {
+		case ez::NSpace::Zero:
+			return os << "Zero";
+		case ez::NSpace::One:
+			return os << "One";
+		case ez::NSpace::Two:
+			return os << "Two";
+		default:
+			return os;
+		}
+	}
+}
+using ez::operator<<;
+
+// This is required to make a ostream operator available to libfmt, as it doesn't do the correct lookup.
+namespace ez {
+	inline std::ostream& operator<<(std::ostream& os, ez::NSpaceFlags val) {
+		return ::operator<<(os, val);
+	}
+}
+
+static constexpr bool has_op = ez::intern::has_ostream_operator<ez::NSpace>::value;
+
 int main() {
 	fmt::print("Test\n");
 	// Next line should not compile if uncommented.
@@ -82,6 +117,11 @@ int main() {
 	sparse |= Sparse::Four;
 
 	fmt::print("Sparse::Two | Sparse::Four print result: '{}'\n", sparse);
+
+	ez::NSpaceFlags nspace;
+	nspace |= ez::NSpace::One;
+
+	fmt::print("NSpace::One print result: '{}'\n", nspace);
 
 	return 0;
 }
