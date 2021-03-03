@@ -29,15 +29,6 @@ namespace ez {
 			return static_cast<std::size_t>(Enum::_Count) <= static_cast<std::size_t>(64);
 		}
 
-		template<typename utype, std::size_t _Count>
-		constexpr utype bitmask() {
-			constexpr utype one = static_cast<utype>(1);
-			constexpr std::size_t size = sizeof(utype) * 8;
-			constexpr std::size_t complement = size - _Count;
-
-			return (~static_cast<utype>(0)) >> complement;
-		}
-
 		template<typename Enum>
 		struct EnumTraits {
 			static_assert(is_scoped_enum<Enum>::value, "Type provided to ez::BitFlags must be a scoped enumeration.");
@@ -47,8 +38,28 @@ namespace ez {
 			
 			static_assert(static_cast<utype>(Enum::_Count) <= static_cast<utype>(64), 
 				"The enumeration provided to ez::BitFlags either has too many members, or the _Count is incorrect.");
-			
-			static constexpr utype mask = bitmask<utype, static_cast<std::size_t>(Enum::_Count)>();
+		};
+
+		template<typename Enum, typename = int>
+		struct all_value {
+			using utype = typename EnumTraits<Enum>::utype;
+			static constexpr utype value = ~((~utype(1)) << (static_cast<int>(Enum::_Count)-1));
+		};
+		template<typename Enum>
+		struct all_value<Enum, decltype(Enum::All, 0)> {
+			using utype = typename EnumTraits<Enum>::utype;
+			static constexpr utype value = static_cast<utype>(Enum::All);
+		};
+
+		template<typename Enum, typename = int>
+		struct none_value {
+			using utype = typename EnumTraits<Enum>::utype;
+			static constexpr utype value = 0;
+		};
+		template<typename Enum>
+		struct none_value<Enum, decltype(Enum::None, 0)> {
+			using utype = typename EnumTraits<Enum>::utype;
+			static constexpr utype value = static_cast<utype>(Enum::None);
 		};
 
 		static std::size_t bitcount(uint8_t _val) noexcept {
@@ -90,7 +101,7 @@ namespace ez {
 
 	template<typename Enum>
 	struct BitFlags {
-		using traits = intern::EnumTraits<Enum>;
+		using traits = typename intern::EnumTraits<Enum>;
 		using utype = typename traits::utype;
 
 		struct none_t {};
@@ -98,7 +109,6 @@ namespace ez {
 
 		static constexpr none_t None{};
 		static constexpr all_t All{};
-
 
 		struct const_iterator {
 			static constexpr utype maxval = static_cast<utype>(Enum::_Count);
@@ -118,6 +128,7 @@ namespace ez {
 				: index(0)
 				, source(nullptr)
 			{};
+
 			const_iterator(const const_iterator &) noexcept = default;
 			~const_iterator() = default;
 			const_iterator& operator=(const const_iterator&) noexcept = default;
@@ -130,10 +141,10 @@ namespace ez {
 			}
 
 			value_type operator*() noexcept {
-				return static_cast<Enum>(static_cast<utype>(1) << index);
+				return static_cast<Enum>(index);
 			}
 			value_type operator->() noexcept {
-				return static_cast<Enum>(static_cast<utype>(1) << index);
+				return static_cast<Enum>(index);
 			}
 
 			const_iterator operator++(int) noexcept {
@@ -149,20 +160,16 @@ namespace ez {
 
 			const_iterator& operator++() noexcept {
 				assert(source != nullptr);
-				while (index < maxval) {
-					if (source->contains(static_cast<Enum>(index))) {
-						break;
-					}
+				++index;
+				while (index < maxval && !source->contains(static_cast<Enum>(index))) {
 					++index;
 				}
 				return *this;
 			}
 			const_iterator& operator--() noexcept {
 				assert(source != nullptr);
-				while (index > -1) {
-					if (source->contains(static_cast<Enum>(index))) {
-						break;
-					}
+				--index;
+				while (index > -1 && !source->contains(static_cast<Enum>(index))) {
 					--index;
 				}
 				return *this;
@@ -179,13 +186,13 @@ namespace ez {
 		}
 
 		constexpr BitFlags() noexcept
-			: value(0)
+			: value(intern::none_value<Enum>::value)
 		{}
 		constexpr BitFlags(none_t none) noexcept
-			: value(0)
+			: value(intern::none_value<Enum>::value)
 		{}
 		constexpr BitFlags(all_t all) noexcept
-			: value(traits::mask)
+			: value(intern::all_value<Enum>::value)
 		{}
 
 		constexpr BitFlags(const Enum& val) noexcept
@@ -203,7 +210,7 @@ namespace ez {
 			value = static_cast<utype>(0);
 		}
 		constexpr bool empty() const noexcept {
-			return value != static_cast<utype>(0);
+			return value == static_cast<utype>(0);
 		}
 		std::size_t size() const noexcept {
 			return intern::bitcount(value);
@@ -313,6 +320,19 @@ constexpr ez::BitFlags<Enum>(operator^)(ez::BitFlags<Enum> lh, ez::BitFlags<Enum
 template<typename Enum>
 constexpr ez::BitFlags<Enum>(operator~)(ez::BitFlags<Enum> lh) noexcept {
 	return ez::BitFlags<Enum>::fromRawValue(~lh.rawValue()) & ez::BitFlags<Enum>{ez::BitFlags<Enum>::All};
+}
+
+template<typename Enum>
+constexpr ez::BitFlags<Enum>(operator|)(ez::BitFlags<Enum> lh, Enum rh) noexcept {
+	return lh | ez::BitFlags<Enum>{rh};
+}
+template<typename Enum>
+constexpr ez::BitFlags<Enum>(operator&)(ez::BitFlags<Enum> lh, Enum rh) noexcept {
+	return lh | ez::BitFlags<Enum>{rh};
+}
+template<typename Enum>
+constexpr ez::BitFlags<Enum>(operator^)(ez::BitFlags<Enum> lh, Enum rh) noexcept {
+	return lh ^ ez::BitFlags<Enum>{rh};
 }
 
 template<typename Enum, Enum = Enum::_EnableOperators>

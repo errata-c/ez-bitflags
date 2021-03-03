@@ -1,9 +1,11 @@
 
 find_package(fmt CONFIG REQUIRED)
+find_package(Catch2 CONFIG REQUIRED)
 
-add_library(test_framework INTERFACE)
-target_link_libraries(test_framework INTERFACE fmt::fmt ez-bitflags)
-
-add_subdirectory("basic")
-
-add_subdirectory("ops")
+add_executable(combined_tests 
+	"main.cpp"
+	"multi_namespace.cpp"
+	"basic.cpp"
+	"ops.cpp"
+)
+target_link_libraries(combined_tests PRIVATE ez-bitflags fmt::fmt Catch2::Catch2)

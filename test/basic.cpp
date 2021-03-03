@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <catch2/catch.hpp>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <ez/BitFlags.hpp>
@@ -8,23 +9,13 @@ enum class Test {
 	Zero,
 	One,
 	Two,
+	Three,
 	_Count,
 	_EnableOperators, // Enable the bitwise operators for this enumeration.
 };
 using TestFlags = ez::BitFlags<Test>;
 
-std::ostream& operator<<(std::ostream& os, Test val) {
-	switch (val) {
-	case Test::Zero:
-		return os << "Zero";
-	case Test::One:
-		return os << "One";
-	case Test::Two:
-		return os << "Two";
-	default: // no need to print _Count
-		return os;
-	}
-}
+std::ostream& operator<<(std::ostream& os, Test val);
 
 enum Unscoped {
 	Fun = 0,
@@ -40,7 +31,9 @@ enum class Sparse {
 	Zero = 0,
 	Two = 2,
 	Four = 4,
-	_Count
+	_Count,
+	_EnableOperators,
+	All = 0b10101,
 };
 
 std::ostream& operator<<(std::ostream& os, Sparse value) {
@@ -92,36 +85,39 @@ namespace ez {
 }
 
 static constexpr bool has_op = ez::intern::has_ostream_operator<ez::NSpace>::value;
+static_assert(has_op, "has_op returned invalid result");
 
-int main() {
-	fmt::print("Test\n");
-	// Next line should not compile if uncommented.
-	//UnscopedFlags badflags;
-
+TEST_CASE("basic tests") {
 	TestFlags value = TestFlags::None;
 
 	value |= Test::Zero;
 
-	fmt::print("Test::Zero print result: '{}'\n", Test::Zero);
-	fmt::print("Test::Zero in BitFlags print result: '{}'\n", value);
+	SECTION("print zero") {
+		std::string result = fmt::format("{}", Test::Zero);
+		REQUIRE(result == "Zero");
+
+		result = fmt::format("{}", value);
+		REQUIRE(result == "[Zero]");
+	}
 
 	value = Test::One | Test::Two;
 
-	fmt::print("Test::One | Test::Two print result: '{}'\n", value);
+	SECTION("print one two") {
+		std::string result = fmt::format("{}", value);
+		REQUIRE(result == "[One, Two]");
+	}
 
-	SparseFlags sparse;
-	sparse |= Sparse::Two;
-	
-	fmt::print("Sparse::Two print result: '{}'\n", sparse);
+	SparseFlags sparse = Sparse::Two | Sparse::Four;
 
-	sparse |= Sparse::Four;
+	SECTION("print sparse") {
+		std::string result = fmt::format("{}", sparse);
+		REQUIRE(result == "[Two, Four]");
+	}
 
-	fmt::print("Sparse::Two | Sparse::Four print result: '{}'\n", sparse);
+	ez::NSpaceFlags nspace = ez::NSpace::One;
 
-	ez::NSpaceFlags nspace;
-	nspace |= ez::NSpace::One;
-
-	fmt::print("NSpace::One print result: '{}'\n", nspace);
-
-	return 0;
+	SECTION("print namespace") {
+		std::string result = fmt::format("{}", nspace);
+		REQUIRE(result == "[One]");
+	}
 }

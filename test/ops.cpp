@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <catch2/catch.hpp>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <ez/BitFlags.hpp>
@@ -33,21 +34,15 @@ constexpr TestFlags cflags0 = Test::Zero;
 constexpr TestFlags cflags1 = Test::One | Test::Zero;
 constexpr TestFlags cflags2 = cflags0 & TestFlags{ Test::One };
 
-int main(int argc, char* argv[]) {
+TEST_CASE("operators") {
 	TestFlags flags = Test::Zero | Test::Two;
 
-	if (flags.contains(Test::Zero)) {
-		fmt::print("contains\n");
-	}
-	if (flags.anyOf(Test::Zero | Test::One)) {
-		fmt::print("anyOf\n");
-	}
-	if (flags.allOf(Test::Zero | Test::One)) {
-		fmt::print("No go\n");
-	}
+	REQUIRE(flags.contains(Test::Zero));
+
+	REQUIRE(flags.anyOf(Test::Zero | Test::One));
+
+	REQUIRE(!flags.allOf(Test::Zero | Test::One));
 
 	flags = Test::Zero;
-	if (!flags.empty()) {
-		fmt::print("Not empty\n");
-	}
+	REQUIRE(!flags.empty());
 }
