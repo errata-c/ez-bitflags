@@ -87,37 +87,30 @@ namespace ez {
 static constexpr bool has_op = ez::intern::has_ostream_operator<ez::NSpace>::value;
 static_assert(has_op, "has_op returned invalid result");
 
-TEST_CASE("basic tests") {
-	TestFlags value = TestFlags::None;
 
+TEST_CASE("printing") {
+	TestFlags value = TestFlags::None;
 	value |= Test::Zero;
 
-	SECTION("print zero") {
-		std::string result = fmt::format("{}", Test::Zero);
-		REQUIRE(result == "Zero");
-
-		result = fmt::format("{}", value);
-		REQUIRE(result == "[Zero]");
-	}
+	std::string result = fmt::format("{}", Test::Zero);
+	REQUIRE(result == "Zero");
+	
+	result = fmt::format("{}", value);
+	REQUIRE(result == "[Zero]");
 
 	value = Test::One | Test::Two;
+	result = fmt::format("{}", value);
+	REQUIRE(result == "[One, Two]");
+}
 
-	SECTION("print one two") {
-		std::string result = fmt::format("{}", value);
-		REQUIRE(result == "[One, Two]");
-	}
-
+TEST_CASE("sparse flags") {
 	SparseFlags sparse = Sparse::Two | Sparse::Four;
+	
+	REQUIRE(sparse.rawValue() == 0b10100);
 
-	SECTION("print sparse") {
-		std::string result = fmt::format("{}", sparse);
-		REQUIRE(result == "[Two, Four]");
-	}
+	std::string result = fmt::format("{}", sparse);
+	REQUIRE(result == "[Two, Four]");
 
-	ez::NSpaceFlags nspace = ez::NSpace::One;
-
-	SECTION("print namespace") {
-		std::string result = fmt::format("{}", nspace);
-		REQUIRE(result == "[One]");
-	}
+	sparse = ~sparse;
+	REQUIRE(sparse.rawValue() == 1);
 }

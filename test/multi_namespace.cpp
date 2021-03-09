@@ -21,23 +21,52 @@ namespace sigma {
 }
 
 TEST_CASE("values") {
-	foo::Bars bars;
-	
 	SECTION("default constructor") {
+		foo::Bars bars;
+
 		REQUIRE(bars.rawValue() == 0);
 		REQUIRE(bars == foo::Bars::None);
 	}
 
-	bars |= foo::Bar::One;
-
 	SECTION("or equal") {
+		foo::Bars bars;
+
+		bars |= foo::Bar::One;
+
+		REQUIRE(bars.contains(foo::Bar::One));
 		REQUIRE(bars.rawValue() == (1 << 1));
 	}
 
-	bars |= foo::Bar::Two | foo::Bar::Three | foo::Bar::Zero;
-
 	SECTION("multiple or") {
+		foo::Bars bars;
+
+		bars |= foo::Bar::One;
+		bars |= foo::Bar::Two | foo::Bar::Three | foo::Bar::Zero;
 		REQUIRE(bars.rawValue() == (0b1111));
+	}
+
+	SECTION("set method") {
+		foo::Bars bars;
+
+		bars = foo::Bars::None;
+		bars.set(foo::Bar::One);
+
+		REQUIRE(bars.contains(foo::Bar::One));
+		REQUIRE(bars.rawValue() == 2);
+	}
+
+	SECTION("All value") {
+		foo::Bars bars = foo::Bars::All;
+		REQUIRE(bars.rawValue() == 0b1111);
+	}
+
+	SECTION("all to none") {
+		foo::Bars bars = foo::Bars::All;
+
+		REQUIRE(bars.rawValue() == 0b1111);
+
+		bars = ~bars;
+		REQUIRE(bars.rawValue() == 0);
 	}
 }
 

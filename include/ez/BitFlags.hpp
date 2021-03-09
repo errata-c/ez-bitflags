@@ -46,9 +46,9 @@ namespace ez {
 			static constexpr utype value = ~((~utype(1)) << (static_cast<int>(Enum::_Count)-1));
 		};
 		template<typename Enum>
-		struct all_value<Enum, decltype(Enum::All, 0)> {
+		struct all_value<Enum, decltype(Enum::_All, 0)> {
 			using utype = typename EnumTraits<Enum>::utype;
-			static constexpr utype value = static_cast<utype>(Enum::All);
+			static constexpr utype value = static_cast<utype>(Enum::_All);
 		};
 
 		template<typename Enum, typename = int>
@@ -57,9 +57,9 @@ namespace ez {
 			static constexpr utype value = 0;
 		};
 		template<typename Enum>
-		struct none_value<Enum, decltype(Enum::None, 0)> {
+		struct none_value<Enum, decltype(Enum::_None, 0)> {
 			using utype = typename EnumTraits<Enum>::utype;
-			static constexpr utype value = static_cast<utype>(Enum::None);
+			static constexpr utype value = static_cast<utype>(Enum::_None);
 		};
 
 		static std::size_t bitcount(uint8_t _val) noexcept {
