@@ -4,12 +4,14 @@ project(EZ_BITFLAGS
 VERSION 0.2
 LANGUAGES CXX)
 
+option(BUILD_TESTS "Build the test executables" ON)
+option(SEPARATE_DIRECTORY "Install the package into its own directory" ON)
+
 include(GNUInstallDirs)
-find_package(ez-cmake CONFIG REQUIRED)
+include("cmake/ez-cmake/install_package.cmake")
 
 set(PACK_NAME "ez-bitflags")
 set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/${PACK_NAME}" CACHE STRING "The relative directory to install ${PACK_NAME} package config files.")
-set(BUILD_TESTS OFF CACHE BOOL "Build the tests for ${PACK_NAME} library.")
 
 add_library(ez-bitflags INTERFACE)
 
@@ -21,11 +23,13 @@ INTERFACE
 target_compile_features(ez-bitflags INTERFACE cxx_std_17)
 set_target_properties(ez-bitflags PROPERTIES EXPORT_NAME "bitflags")
 
-if(${BUILD_TESTS})
+if(BUILD_TESTS)
 	add_subdirectory("test")
 endif()
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/ez-bitflags)
+if(SEPARATE_DIRECTORY)
+	set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/ez-bitflags)
+endif()
 
 install(
 DIRECTORY 
