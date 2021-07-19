@@ -5,13 +5,20 @@ VERSION 0.2
 LANGUAGES CXX)
 
 include(GNUInstallDirs)
-include("cmake/ez-cmake/install_package.cmake")
+include(FetchContent)
+
+FetchContent_Declare(
+	ez-cmake
+	GIT_REPOSITORY "https://github.com/errata-c/ez-cmake.git"
+	GIT_TAG "c174cbd947278d4dd8e2f7d7f3c3499cd0b7f5ad"
+)
+FetchContent_MakeAvailable(ez-cmake)
+
+add_uninstall_target(uninstall_ez-bitflags)
 
 option(BUILD_TESTS "Build the test executables" ON)
 option(SEPARATE_DIRECTORY "Install the package into its own directory" ON)
 set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ez-bitflags" CACHE STRING "The relative directory to install package config files.")
-
-
 
 add_library(ez-bitflags INTERFACE)
 
