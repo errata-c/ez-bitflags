@@ -1,8 +1,6 @@
 #include <iostream>
 
 #include <catch2/catch.hpp>
-#include <fmt/core.h>
-#include <fmt/ostream.h>
 #include <ez/BitFlags.hpp>
 
 enum class Test {

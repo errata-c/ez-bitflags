@@ -1,8 +1,7 @@
 #include <iostream>
+#include <sstream>
 
 #include <catch2/catch.hpp>
-#include <fmt/core.h>
-#include <fmt/ostream.h>
 #include <ez/BitFlags.hpp>
 
 enum class Test {
@@ -31,9 +30,10 @@ enum class Sparse {
 	Zero = 0,
 	Two = 2,
 	Four = 4,
-	_Count,
+
+	_Count = 3,
 	_EnableOperators,
-	All = 0b10101,
+	_All = 0b10101,
 };
 
 std::ostream& operator<<(std::ostream& os, Sparse value) {
@@ -92,23 +92,46 @@ TEST_CASE("printing") {
 	TestFlags value = TestFlags::None;
 	value |= Test::Zero;
 
-	std::string result = fmt::format("{}", Test::Zero);
+	std::stringstream ss;
+	ss << Test::Zero;
+
+	std::string result = ss.str();
 	REQUIRE(result == "Zero");
-	
-	result = fmt::format("{}", value);
+
+	ss.str("");
+	ss.clear();
+	ss << value;
+
+	result = ss.str();
 	REQUIRE(result == "[Zero]");
 
 	value = Test::One | Test::Two;
-	result = fmt::format("{}", value);
+	ss.str("");
+	ss.clear();
+	ss << value;
+
+	result = ss.str();
 	REQUIRE(result == "[One, Two]");
 }
 
 TEST_CASE("sparse flags") {
 	SparseFlags sparse = Sparse::Two | Sparse::Four;
-	
+	SparseFlags all = SparseFlags::All;
+
+	int count = 0;
+	for (Sparse flag : all) {
+		++count;
+	}
+	REQUIRE(all.numSet() == 3);
+	REQUIRE(count == 3);
+
+	REQUIRE(all.rawValue() == 0b10101);
 	REQUIRE(sparse.rawValue() == 0b10100);
 
-	std::string result = fmt::format("{}", sparse);
+	std::stringstream ss;
+	ss << sparse;
+
+	std::string result = ss.str();
 	REQUIRE(result == "[Two, Four]");
 
 	sparse = ~sparse;

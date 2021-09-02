@@ -1,6 +1,4 @@
 #include <catch2/catch.hpp>
-
-#include <fmt/core.h>
 #include <ez/BitFlags.hpp>
 
 namespace foo {

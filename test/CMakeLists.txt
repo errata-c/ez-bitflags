@@ -1,5 +1,4 @@
 
-find_package(fmt CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
 add_executable(combined_tests 
@@ -8,4 +7,4 @@ add_executable(combined_tests
 	"basic.cpp"
 	"ops.cpp"
 )
-target_link_libraries(combined_tests PRIVATE ez-bitflags fmt::fmt Catch2::Catch2)
+target_link_libraries(combined_tests PRIVATE ez::bitflags Catch2::Catch2)
