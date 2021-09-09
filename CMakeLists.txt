@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(EZ_BITFLAGS
-	VERSION 0.3.0
+	VERSION 0.3.1
 	LANGUAGES CXX
 )
 
-option(BUILD_TESTS "Build the test executables" OFF)
-option(SEPARATE_DIRECTORY "Install the package into its own directory" OFF)
-set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ez-bitflags" CACHE STRING "The relative directory to install package config files.")
-
+option(EZ_BITFLAGS_BUILD_TESTS "Build the test executables" OFF)
+set(EZ_BITFLAGS_CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ez-bitflags" CACHE STRING "The relative directory to install package config files.")
 
 include(GNUInstallDirs)
 include(FetchContent)
@@ -22,7 +20,6 @@ FetchContent_MakeAvailable(ez-cmake)
 
 
 add_library(bitflags INTERFACE)
-
 target_include_directories(bitflags
 INTERFACE
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
@@ -32,12 +29,8 @@ target_compile_features(bitflags INTERFACE cxx_std_17)
 
 add_library(ez::bitflags ALIAS bitflags)
 
-if(BUILD_TESTS)
+if(EZ_BITFLAGS_BUILD_TESTS)
 	add_subdirectory("test")
-endif()
-
-if(SEPARATE_DIRECTORY)
-	set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/ez-bitflags)
 endif()
 
 install(
@@ -58,6 +51,6 @@ install_package(
 	EXPORT "bitflags-targets"
 	VERSION "${EZ_BITFLAGS_VERSION}"
 	COMPATIBILITY "SameMajorVersion"
-	DESTINATION "${CONFIG_DIR}"
+	DESTINATION "${EZ_BITFLAGS_CONFIG_DIR}"
 	ARCH_INDEPENDENT
 )
