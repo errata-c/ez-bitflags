@@ -6,7 +6,7 @@ project(EZ_BITFLAGS
 )
 
 option(EZ_BITFLAGS_BUILD_TESTS "Build the test executables" OFF)
-set(EZ_BITFLAGS_CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ez-bitflags" CACHE STRING "The relative directory to install package config files.")
+set(EZ_BITFLAGS_CONFIG_DIR "share/ez-bitflags" CACHE STRING "The relative directory to install package config files.")
 
 include(GNUInstallDirs)
 include(FetchContent)
@@ -37,7 +37,7 @@ install(
 DIRECTORY 
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/"
 DESTINATION 
-	"${CMAKE_INSTALL_INCLUDEDIR}"
+	"include"
 FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" 
 )
 

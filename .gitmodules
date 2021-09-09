@@ -1,3 +1,0 @@
-[submodule "cmake/ez-cmake"]
-	path = cmake/ez-cmake
-	url = git@github.com:errata-c/ez-cmake.git
