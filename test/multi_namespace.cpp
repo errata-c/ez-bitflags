@@ -8,7 +8,8 @@ namespace foo {
 		Two = 2,
 		Three = 3,
 		_Count,
-		_EnableOperators
+		_EnableOperators,
+		_None = 0,
 	};
 	using Bars = ez::BitFlags<Bar>;
 }

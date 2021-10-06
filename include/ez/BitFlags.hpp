@@ -6,23 +6,13 @@
 
 namespace ez {
 	namespace intern {
-		static constexpr uint64_t const_bitcount_4(uint64_t val) {
+		static constexpr uint64_t const_bitcount(uint64_t val) {
+			val = ((val & 0xAAAA'AAAA'AAAA'AAAAull) >> 1) + (val & 0x5555'5555'5555'5555ull);
+			val = ((val & 0xCCCC'CCCC'CCCC'CCCCull) >> 2) + (val & 0x3333'3333'3333'3333ull);
+			val = ((val & 0xF0F0'F0F0'F0F0'F0F0ull) >> 4) + (val & 0x0F0F'0F0F'0F0F'0F0Full);
+			val = ((val & 0xFF00'FF00'FF00'FF00ull) >> 8) + (val & 0x00FF'00FF'00FF00FFull);
+			val = ((val & 0xFFFF'0000'FFFF'0000ull) >> 16) + (val & 0x0000'FFFF'0000'FFFFull);
 			return ((val & 0xFFFFFFFF'00000000ull) >> 32) + (val & 0x00000000'FFFFFFFFull);
-		}
-		static constexpr uint64_t const_bitcount_3(uint64_t val) {
-			return const_bitcount_4(((val & 0xFFFF0000'FFFF0000ull) >> 16) + (val & 0x0000FFFF'0000FFFFull));
-		}
-		static constexpr uint64_t const_bitcount_2(uint64_t val) {
-			return const_bitcount_3(((val & 0xFF00'FF00'FF00'FF00ull) >> 8) + (val & 0x00FF'00FF'00FF00FFull));
-		}
-		static constexpr uint64_t const_bitcount_1(uint64_t val) {
-			return const_bitcount_2(((val & 0xF0F0'F0F0'F0F0'F0F0ull) >> 4) + (val & 0x0F0F'0F0F'0F0F'0F0Full));
-		}
-		static constexpr uint64_t const_bitcount_0(uint64_t val) {
-			return const_bitcount_1(((val & 0xCCCC'CCCC'CCCC'CCCCull) >> 2) + (val & 0x3333'3333'3333'3333ull));
-		}
-		static constexpr std::size_t const_bitcount(uint64_t val) {
-			return const_bitcount_0(((val & 0xAAAA'AAAA'AAAA'AAAAull) >> 1) + (val & 0x5555'5555'5555'5555ull));
 		}
 		
 		static constexpr int last_set(uint64_t val) {
@@ -42,14 +32,14 @@ namespace ez {
 		struct has_count<Enum, decltype(Enum::_Count, 0)>: std::true_type {};
 
 		template<typename Enum, typename = int>
-		struct has_improper_all : std::false_type {};
+		struct has_all : std::false_type {};
 		template<typename Enum>
-		struct has_improper_all<Enum, decltype(Enum::All, 0)> : std::true_type {};
+		struct has_all<Enum, decltype(Enum::_All, 0)> : std::true_type {};
 
 		template<typename Enum, typename = int>
-		struct has_improper_none : std::false_type {};
+		struct has_none : std::false_type {};
 		template<typename Enum>
-		struct has_improper_none<Enum, decltype(Enum::None, 0)> : std::true_type {};
+		struct has_none<Enum, decltype(Enum::_None, 0)> : std::true_type {};
 
 		template<typename Enum, typename = int>
 		struct has_ostream_operator: std::false_type {};
@@ -86,11 +76,8 @@ namespace ez {
 			static_assert(has_count<Enum>::value, 
 				"Enumeration provided to ez::BitFlags must have a _Count enumerator, describing how many flags there are.");
 
-			static_assert(!has_improper_all<Enum>::value,
-				"Enumeration provided to ez::BitFlags contains an enumerator named 'All' instead of '_All'");
-
-			static_assert(!has_improper_none<Enum>::value,
-				"Enumeration provided to ez::BitFlags contains an enumerator named 'None' instead of '_None'");
+			static_assert(has_none<Enum>::value,
+				"Enumeration provided to ez::BitFlags does not contain an enumerator named '_None'!");
 
 			using utype = std::make_unsigned_t<std::underlying_type_t<Enum>>;
 			

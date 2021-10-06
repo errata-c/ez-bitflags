@@ -8,8 +8,10 @@ enum class Test {
 	One,
 	Two,
 	Three,
+
 	_Count,
 	_EnableOperators, // Enable the bitwise operators for this enumeration.
+	_None = 0,
 };
 using TestFlags = ez::BitFlags<Test>;
 

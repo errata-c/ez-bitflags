@@ -9,8 +9,10 @@ enum class Test {
 	One,
 	Two,
 	Three,
+
 	_Count,
 	_EnableOperators, // Enable the bitwise operators for this enumeration.
+	_None = 0,
 };
 using TestFlags = ez::BitFlags<Test>;
 
@@ -33,6 +35,8 @@ enum class Sparse {
 
 	_Count = 3,
 	_EnableOperators,
+
+	_None = 0,
 	_All = 0b10101,
 };
 
@@ -57,7 +61,9 @@ namespace ez {
 		Zero = 0,
 		One = 1,
 		Two = 2,
-		_Count
+
+		_Count,
+		_None = 0,
 	};
 	using NSpaceFlags = ez::BitFlags<NSpace>;
 
@@ -87,6 +93,11 @@ namespace ez {
 static constexpr bool has_op = ez::intern::has_ostream_operator<ez::NSpace>::value;
 static_assert(has_op, "has_op returned invalid result");
 
+
+TEST_CASE("bitcounts") {
+	uint64_t u64 = 0xFF00'FF00'FF00'FF00ull;
+	REQUIRE(ez::intern::bitcount(u64) == 32);
+}
 
 TEST_CASE("printing") {
 	TestFlags value = TestFlags::None;
