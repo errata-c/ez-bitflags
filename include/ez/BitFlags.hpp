@@ -238,6 +238,10 @@ namespace ez {
 		constexpr BitFlags(const BitFlags&) noexcept = default;
 		constexpr BitFlags& operator=(const BitFlags&) noexcept = default;
 
+		explicit operator bool() const noexcept {
+			return !empty();
+		}
+
 		void clear() noexcept {
 			value = static_cast<utype>(0);
 		}
@@ -265,13 +269,25 @@ namespace ez {
 			*this &= ~val;
 		}
 
-		const Enum front() const {
+		Enum front() const {
 			assert(!empty());
 			return *begin();
 		}
-		const Enum back() const {
+		Enum back() const {
 			assert(!empty());
 			return *(--end());
+		}
+
+		const_iterator first() const noexcept {
+			return begin();
+		}
+		const_iterator last() const noexcept {
+			if (empty()) {
+				return end();
+			}
+			else {
+				return end()--;
+			}
 		}
 
 		constexpr bool contains(Enum val) const noexcept {

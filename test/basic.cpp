@@ -148,3 +148,18 @@ TEST_CASE("sparse flags") {
 	sparse = ~sparse;
 	REQUIRE(sparse.rawValue() == 1);
 }
+
+TEST_CASE("iterators and such") {
+	SparseFlags sparse = Sparse::Two | Sparse::Four;
+	SparseFlags all = SparseFlags::All;
+
+	auto it = sparse.begin();
+	REQUIRE(it == sparse.first());
+
+	it = sparse.end()--;
+	REQUIRE(it == sparse.last());
+
+	SparseFlags none = SparseFlags::None;
+	REQUIRE(none.first() == none.end());
+	REQUIRE(none.last() == none.end());
+}
